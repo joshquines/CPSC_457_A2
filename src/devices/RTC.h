@@ -27,6 +27,7 @@ public:
   void staticInterruptHandler() {
     CPU::out8(0x70,0x0C);   // select Status Register C
     CPU::in8(0x71);         // read RTC -> needed to keep interrupts coming
+    //KOUT::outl("fuck");
     currentTick += 1;
   }
   void wait(mword ticks) {

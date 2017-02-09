@@ -28,6 +28,8 @@ AddressSpace kernelSpace(true); // AddressSpace.h
 volatile mword Clock::tick;     // Clock.h
 
 extern Keyboard keyboard;
+string minGranularity;
+string epochLength;
 
 #if TESTING_KEYCODE_LOOP
 static void keybLoop() {
@@ -52,6 +54,36 @@ void kosMain() {
     }
     KOUT::outl();
   }
+  
+  //FOR ASSIGNMENT 2
+
+  bool flag = false;
+  auto iter2 = kernelFS.find("schedparam");
+  if (iter2 == kernelFS.end()) 
+  {
+	KOUT::outl("schedparam information not found");
+    } else {
+        FileAccess f(iter2->second);
+        for (;;) 
+        {
+            char c;
+            if (f.read(&c, 1) == 0) break;
+
+            if(!isspace(c))
+            {
+                if(flag == false)
+                {
+                    minGranularity = c;
+                    flag = true;
+                }else{
+                    epochLength += c;
+                }
+            }
+        }
+
+        KOUT::outl();
+    }
+  
 #if TESTING_TIMER_TEST
   StdErr.print(" timer test, 3 secs...");
   for (int i = 0; i < 3; i++) {

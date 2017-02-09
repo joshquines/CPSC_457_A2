@@ -34,6 +34,17 @@ exec/motb: .FORCE
 	@date >> $@
 	@echo >> $@
 
+#FOR ASSIGNMENT 2
+exec/schedparam: .FORCE
+	@echo creating $@
+	@mkdir -p exec
+	@echo > $@
+	@echo "MAKING SCHEDPARAM" >> $@
+	@echo >> $@
+	@echo -n "ASDFSADFSADF: " >> $@
+	@date >> $@
+	@echo >> $@
+
 echo:
 	@echo SRC: $(SRC)
 	@echo OBJ: $(OBJ)
