@@ -1,0 +1,8 @@
+target remote :2345
+# set breakpoints here
+break kosMainLoop
+
+# continue target right away
+cont
+# get thread information
+info threads

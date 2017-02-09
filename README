@@ -1,0 +1,148 @@
+Cross Compilation Environment
+=============================
+
+To prepare the cross compilation environment, adjust the first few lines of
+'setup_crossenv.sh' and 'config'.  You will need to download the appropriate
+source packages from your friendly neighbourhood mirror.
+
+IMPORTANT: To build the cross compiler, you must have the *development*
+versions (i.e., libraries *and* headers) of the following packages installed
+that are appropriate for your host compiler:
+- GNU Multiple Precision Arithmetic Library 'gmp' (http://gmplib.org/)
+- GNU MPC 'mpc' or 'libmpc' (http://www.multiprecision.org/)
+- GNU MPFR 'mpfr' (http://www.mpfr.org/)
+- CLooG Code Generator 'cloog' (http://www.cloog.org/) and dependencies:
+  . Integer Set Library 'isl' (http://garage.kotnet.org/~skimo/isl/), or
+  . Parma Polyhedra Library 'ppl' (http://bugseng.com/products/ppl/)
+
+Building the cross compiler requires several other packages, such as flex,
+bison, gtk, ncurses (for gdb), as well as potentially libc6-dev (depending
+on the distribution), but these should typically be present on systems
+configured for software development.
+
+The output of the cross compilation script should contain the following
+(among other output; grep for SUCCESS):
+
+SUCCESS: gcc-4.9.2 install
+SUCCESS: grub-2.02~beta2 install
+SUCCESS: gdb-7.9 install
+
+Note that the resulting tool chain has the path to the KOS source code
+hardcoded for finding the user-level library.  See $ULIB in
+setup_crossenv.sh and its use as a second argument in patches/gcc-4.9.2.sh.
+
+
+Hardware Emulation
+==================
+
+The script setup_crossenv.sh also contains suggested configurations for
+bochs and qemu and will build and install those in $TOOLSDIR (default is
+/usr/local) when invoked with the corresponding command-line argument.
+
+
+Other Tools
+===========
+
+You need to have a somewhat recent version of xorriso (>-1.0.0) installed
+for grub2 iso image making using grub-mkrescue. The package might also be
+called 'libisoburn'.
+
+
+Building KOS
+============
+
+To prepare the KOS source code (starting from the main directory):
+
+# download acpica-unix-20150204.tar.gz from https://www.acpica.org/downloads
+# download http://download.savannah.gnu.org/releases/lwip/lwip-1.4.1.zip
+cd src/extern
+# acpica
+tar xaf acpica-unix-20150204.tar.gz
+mv acpica-unix-20150204 acpica
+patch -d acpica -p1 < ../../patches/acpica.patch
+# lwip
+unzip -d lwip lwip-1.4.1.zip
+mv lwip/lwip-1.4.1 lwip/lwip
+patch -d lwip/lwip -p1 < ../../patches/lwip-1.4.1.patch
+cd ../..
+
+You should be back in the main directory. Type 'make' to get a list of build
+targets. These targets should also work from within the src/ directry.
+
+Make sure to *not* have any of gcc's or ld's PATH environment variables set,
+such as C_INCLUDE_PATH or LD_LIBRARY_PATH, since those might interfere with
+the cross compiler setup.
+
+Note that the cross compiler expects the KOS system library (libKOS.a) in
+the src/ulib directory when linking user-level programs.  This configuration
+setting is hardcoded in the 'link_libgcc' and 'libgcc' specs of the built
+gcc.
+
+
+Running KOS
+===========
+
+When executing KOS, the system should show a number of messages and then get
+into a split-screen mode, where the first 20 lines are showing output from
+several threads running on several cores and the bottom 5 lines show
+keycodes when keys are pressed and released.  Running KOS in qemu creates
+several log files that can be used to diagnose problems:
+
+/tmp/KOS.serial
+/tmp/KOS.dbg
+/tmp/qemu.log - disabled in Makefile.config (see -d option for qemu)
+
+KOS.dbg and KOS.serial are two different output channels internally, but
+currently contain essentially the same information.  Running with bochs or
+VirtualBox only produces /tmp/KOS.serial.
+
+Boot Code Path
+==============
+
+The system boots using grub. The multiboot header and bootstrap routine is
+implemented in src/boot/boot.S.  After switching the boot processor (BSP)
+into 64-bit mode and enabling paging (using identity mapping), control is
+transferred to 'kmain' in src/kern/Kernel.cc.  The same code path is used to
+later boot additional processors (termed application processor or AP in
+Intel/AMD documentation), but differentiated in 'kmain'.
+
+
+Contributors (in alphabetical order)
+============
+
+- Sukown Oh (e1000, gdb)
+- Behrooz Shafiee (elf, keyboard, lwip, pit, syscall/sysret)
+- Priyaa Varshinee Srinivasan (synchronization)
+- Alex Szlavik (bootstrap)
+- Cameron White (clang)
+
+
+License
+=======
+
+KOS itself is currentl distributed under the GNU GPL license, although this
+might change in the future.
+
+
+Third-Party Software
+====================
+
+KOS uses the 'acpica' and 'lwip' software packages. Please see their
+respective license information when downloading the source code.
+
+Aside from using GCC with Newlib as the C library, as well as grub, KOS
+integrates the following software packages, which can be found in the
+'extern' directory.  Please see the source code for detailed license
+information.  The summary below is just a high-level overview of my
+interpretation of the license terms.
+
+- dlmalloc:   public domain / creative commons license
+- elfio:      BSD-type license
+- multiboot:  BSD-type license
+- cdi:        BSD-type license
+
+
+Feedback / Questions
+====================
+
+Please send any questions or feedback to mkarsten@uwaterloo.ca.

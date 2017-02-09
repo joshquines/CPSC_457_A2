@@ -1,0 +1,325 @@
+/******************************************************************************
+    Copyright © 2012-2015 Martin Karsten
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+******************************************************************************/
+.include "generic/regsave.h"
+
+.text
+
+.macro ISR_ENTRY isr_num offset=0     /* offset to account for error code */
+.align 8
+.globl   isr_wrapper_\isr_num
+isr_wrapper_\isr_num:
+	ISR_PUSH
+	leaq (ISRFRAME+\offset)(%rsp), %rdi /* address of isr frame -> 1st arg */
+.endm
+
+.macro ISR_EXIT isr_num offset=0      /* offset to account for error code */
+	ISR_POP
+.if \offset
+	addq $\offset, %rsp                 /* skip error code on stack */
+.endif
+	iretq
+.endm
+
+.macro EXCEPTION isr_num
+	ISR_ENTRY \isr_num
+	call exception_handler_\isr_num
+	ISR_EXIT \isr_num
+.endm
+
+.macro EXCEPTION_ERRCODE isr_num
+	ISR_ENTRY \isr_num 8                /* offset to account for error code */
+	movq ISRFRAME(%rsp), %rsi           /* error code -> 2nd arg */
+	call exception_handler_errcode_\isr_num
+	ISR_EXIT \isr_num 8                 /* offset to account for error code */
+.endm
+
+.macro EXCEPTION_UNDEFINED isr_num
+	ISR_ENTRY \isr_num
+	mov $\isr_num, %rsi                 /* isr num -> 2nd arg */
+	call exception_handler_undefined
+	ISR_EXIT \isr_num
+.endm
+
+.macro IRQ_ASYNC isr_num
+	ISR_ENTRY \isr_num
+	mov $(\isr_num - 0x20), %rsi        /* isr index (num - 0x20) -> 2nd arg */
+	call irq_handler_async
+	ISR_EXIT \isr_num
+.endm
+
+.macro IRQ_DIRECT isr_num
+	ISR_ENTRY \isr_num
+	call irq_handler_\isr_num
+	ISR_EXIT \isr_num
+.endm
+
+EXCEPTION 0x00
+EXCEPTION 0x01
+EXCEPTION 0x02
+EXCEPTION 0x03
+EXCEPTION 0x04
+EXCEPTION 0x05
+EXCEPTION 0x06
+EXCEPTION 0x07
+EXCEPTION_ERRCODE 0x08
+EXCEPTION 0x09
+EXCEPTION_ERRCODE 0x0a
+EXCEPTION_ERRCODE 0x0b
+EXCEPTION_ERRCODE 0x0c
+EXCEPTION_ERRCODE 0x0d
+EXCEPTION_ERRCODE 0x0e
+EXCEPTION_UNDEFINED 0x0f
+EXCEPTION 0x10
+EXCEPTION_ERRCODE 0x11
+EXCEPTION 0x12
+EXCEPTION 0x13
+EXCEPTION 0x14
+EXCEPTION_UNDEFINED 0x15
+EXCEPTION_UNDEFINED 0x16
+EXCEPTION_UNDEFINED 0x17
+EXCEPTION_UNDEFINED 0x18
+EXCEPTION_UNDEFINED 0x19
+EXCEPTION_UNDEFINED 0x1a
+EXCEPTION_UNDEFINED 0x1b
+EXCEPTION_UNDEFINED 0x1c
+EXCEPTION_UNDEFINED 0x1d
+EXCEPTION_UNDEFINED 0x1e
+EXCEPTION_UNDEFINED 0x1f
+IRQ_ASYNC 0x20
+IRQ_ASYNC 0x21
+IRQ_ASYNC 0x22
+IRQ_ASYNC 0x23
+IRQ_ASYNC 0x24
+IRQ_ASYNC 0x25
+IRQ_ASYNC 0x26
+IRQ_ASYNC 0x27
+IRQ_ASYNC 0x28
+IRQ_ASYNC 0x29
+IRQ_ASYNC 0x2a
+IRQ_ASYNC 0x2b
+IRQ_ASYNC 0x2c
+IRQ_ASYNC 0x2d
+IRQ_ASYNC 0x2e
+IRQ_ASYNC 0x2f
+IRQ_ASYNC 0x30
+IRQ_ASYNC 0x31
+IRQ_ASYNC 0x32
+IRQ_ASYNC 0x33
+IRQ_ASYNC 0x34
+IRQ_ASYNC 0x35
+IRQ_ASYNC 0x36
+IRQ_ASYNC 0x37
+IRQ_ASYNC 0x38
+IRQ_ASYNC 0x39
+IRQ_ASYNC 0x3a
+IRQ_ASYNC 0x3b
+IRQ_ASYNC 0x3c
+IRQ_ASYNC 0x3d
+IRQ_ASYNC 0x3e
+IRQ_ASYNC 0x3f
+IRQ_ASYNC 0x40
+IRQ_ASYNC 0x41
+IRQ_ASYNC 0x42
+IRQ_ASYNC 0x43
+IRQ_ASYNC 0x44
+IRQ_ASYNC 0x45
+IRQ_ASYNC 0x46
+IRQ_ASYNC 0x47
+IRQ_ASYNC 0x48
+IRQ_ASYNC 0x49
+IRQ_ASYNC 0x4a
+IRQ_ASYNC 0x4b
+IRQ_ASYNC 0x4c
+IRQ_ASYNC 0x4d
+IRQ_ASYNC 0x4e
+IRQ_ASYNC 0x4f
+IRQ_ASYNC 0x50
+IRQ_ASYNC 0x51
+IRQ_ASYNC 0x52
+IRQ_ASYNC 0x53
+IRQ_ASYNC 0x54
+IRQ_ASYNC 0x55
+IRQ_ASYNC 0x56
+IRQ_ASYNC 0x57
+IRQ_ASYNC 0x58
+IRQ_ASYNC 0x59
+IRQ_ASYNC 0x5a
+IRQ_ASYNC 0x5b
+IRQ_ASYNC 0x5c
+IRQ_ASYNC 0x5d
+IRQ_ASYNC 0x5e
+IRQ_ASYNC 0x5f
+IRQ_ASYNC 0x60
+IRQ_ASYNC 0x61
+IRQ_ASYNC 0x62
+IRQ_ASYNC 0x63
+IRQ_ASYNC 0x64
+IRQ_ASYNC 0x65
+IRQ_ASYNC 0x66
+IRQ_ASYNC 0x67
+IRQ_ASYNC 0x68
+IRQ_ASYNC 0x69
+IRQ_ASYNC 0x6a
+IRQ_ASYNC 0x6b
+IRQ_ASYNC 0x6c
+IRQ_ASYNC 0x6d
+IRQ_ASYNC 0x6e
+IRQ_ASYNC 0x6f
+IRQ_ASYNC 0x70
+IRQ_ASYNC 0x71
+IRQ_ASYNC 0x72
+IRQ_ASYNC 0x73
+IRQ_ASYNC 0x74
+IRQ_ASYNC 0x75
+IRQ_ASYNC 0x76
+IRQ_ASYNC 0x77
+IRQ_ASYNC 0x78
+IRQ_ASYNC 0x79
+IRQ_ASYNC 0x7a
+IRQ_ASYNC 0x7b
+IRQ_ASYNC 0x7c
+IRQ_ASYNC 0x7d
+IRQ_ASYNC 0x7e
+IRQ_ASYNC 0x7f
+IRQ_ASYNC 0x80
+IRQ_ASYNC 0x81
+IRQ_ASYNC 0x82
+IRQ_ASYNC 0x83
+IRQ_ASYNC 0x84
+IRQ_ASYNC 0x85
+IRQ_ASYNC 0x86
+IRQ_ASYNC 0x87
+IRQ_ASYNC 0x88
+IRQ_ASYNC 0x89
+IRQ_ASYNC 0x8a
+IRQ_ASYNC 0x8b
+IRQ_ASYNC 0x8c
+IRQ_ASYNC 0x8d
+IRQ_ASYNC 0x8e
+IRQ_ASYNC 0x8f
+IRQ_ASYNC 0x90
+IRQ_ASYNC 0x91
+IRQ_ASYNC 0x92
+IRQ_ASYNC 0x93
+IRQ_ASYNC 0x94
+IRQ_ASYNC 0x95
+IRQ_ASYNC 0x96
+IRQ_ASYNC 0x97
+IRQ_ASYNC 0x98
+IRQ_ASYNC 0x99
+IRQ_ASYNC 0x9a
+IRQ_ASYNC 0x9b
+IRQ_ASYNC 0x9c
+IRQ_ASYNC 0x9d
+IRQ_ASYNC 0x9e
+IRQ_ASYNC 0x9f
+IRQ_ASYNC 0xa0
+IRQ_ASYNC 0xa1
+IRQ_ASYNC 0xa2
+IRQ_ASYNC 0xa3
+IRQ_ASYNC 0xa4
+IRQ_ASYNC 0xa5
+IRQ_ASYNC 0xa6
+IRQ_ASYNC 0xa7
+IRQ_ASYNC 0xa8
+IRQ_ASYNC 0xa9
+IRQ_ASYNC 0xaa
+IRQ_ASYNC 0xab
+IRQ_ASYNC 0xac
+IRQ_ASYNC 0xad
+IRQ_ASYNC 0xae
+IRQ_ASYNC 0xaf
+IRQ_ASYNC 0xb0
+IRQ_ASYNC 0xb1
+IRQ_ASYNC 0xb2
+IRQ_ASYNC 0xb3
+IRQ_ASYNC 0xb4
+IRQ_ASYNC 0xb5
+IRQ_ASYNC 0xb6
+IRQ_ASYNC 0xb7
+IRQ_ASYNC 0xb8
+IRQ_ASYNC 0xb9
+IRQ_ASYNC 0xba
+IRQ_ASYNC 0xbb
+IRQ_ASYNC 0xbc
+IRQ_ASYNC 0xbd
+IRQ_ASYNC 0xbe
+IRQ_ASYNC 0xbf
+IRQ_ASYNC 0xc0
+IRQ_ASYNC 0xc1
+IRQ_ASYNC 0xc2
+IRQ_ASYNC 0xc3
+IRQ_ASYNC 0xc4
+IRQ_ASYNC 0xc5
+IRQ_ASYNC 0xc6
+IRQ_ASYNC 0xc7
+IRQ_ASYNC 0xc8
+IRQ_ASYNC 0xc9
+IRQ_ASYNC 0xca
+IRQ_ASYNC 0xcb
+IRQ_ASYNC 0xcc
+IRQ_ASYNC 0xcd
+IRQ_ASYNC 0xce
+IRQ_ASYNC 0xcf
+IRQ_ASYNC 0xd0
+IRQ_ASYNC 0xd1
+IRQ_ASYNC 0xd2
+IRQ_ASYNC 0xd3
+IRQ_ASYNC 0xd4
+IRQ_ASYNC 0xd5
+IRQ_ASYNC 0xd6
+IRQ_ASYNC 0xd7
+IRQ_ASYNC 0xd8
+IRQ_ASYNC 0xd9
+IRQ_ASYNC 0xda
+IRQ_ASYNC 0xdb
+IRQ_ASYNC 0xdc
+IRQ_ASYNC 0xdd
+IRQ_ASYNC 0xde
+IRQ_ASYNC 0xdf
+IRQ_DIRECT 0xe0
+EXCEPTION_UNDEFINED 0xe1
+EXCEPTION_UNDEFINED 0xe2
+EXCEPTION_UNDEFINED 0xe3
+EXCEPTION_UNDEFINED 0xe4
+EXCEPTION_UNDEFINED 0xe5
+EXCEPTION_UNDEFINED 0xe6
+EXCEPTION_UNDEFINED 0xe7
+EXCEPTION_UNDEFINED 0xe8
+EXCEPTION_UNDEFINED 0xe9
+EXCEPTION_UNDEFINED 0xea
+EXCEPTION_UNDEFINED 0xeb
+EXCEPTION_UNDEFINED 0xec
+IRQ_DIRECT 0xed
+IRQ_DIRECT 0xee
+IRQ_DIRECT 0xef
+IRQ_DIRECT 0xf0
+EXCEPTION_UNDEFINED 0xf1
+EXCEPTION_UNDEFINED 0xf2
+EXCEPTION_UNDEFINED 0xf3
+EXCEPTION_UNDEFINED 0xf4
+EXCEPTION_UNDEFINED 0xf5
+EXCEPTION_UNDEFINED 0xf6
+IRQ_DIRECT 0xf7
+IRQ_DIRECT 0xf8
+IRQ_DIRECT 0xf9
+EXCEPTION_UNDEFINED 0xfa
+EXCEPTION_UNDEFINED 0xfb
+IRQ_DIRECT 0xfc
+EXCEPTION_UNDEFINED 0xfd
+EXCEPTION_UNDEFINED 0xfe
+IRQ_DIRECT 0xff

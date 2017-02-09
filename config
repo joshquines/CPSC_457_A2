@@ -1,0 +1,24 @@
+
+#
+# NOTE: This file is included by both shell scripts and Makefiles, so
+# declarations here must be fairly limited in syntax and semantics!
+#
+
+# target directories for cross compiler & other tools
+GCCDIR=/usr/local/kos/cross/gcc
+GDBDIR=/usr/local/kos/cross/gdb
+GRUBDIR=/usr/local/kos/cross/grub
+TOOLSDIR=/usr/local/kos
+
+# version information for cross compiler
+TARGET=x86_64-pc-elf
+GCCVER=4.9.2
+
+# used when installing on a USB device, must be set to actual USB device
+USBDEV=/dev/sdX
+
+# only used when setting up PXE booting
+#TFTPSERVER=kos@kos
+TFTPSERVER=localhost
+TFTPDIR=/tftpboot2
+# start tftpd: ssh $TFTPSERVER sudo in.tftpd -u nobody -v -l -s $TFTPDIR

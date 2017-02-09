@@ -1,0 +1,206 @@
+.text
+
+# Restore the program's registers (including stack pointer, which
+# means we get the right stack and don't have to worry about popping our
+# return address and any stack frames and so on) and return.
+# cs, rip, ss, rsp, eflags are restored by iretq
+# fs, gs are not modified by GDB and must be set by wrmsr instruction
+
+# requires reg64Buffer to be at %rdi
+.align  8
+enterGdb:
+    mov %rax,    (%rdi)
+    mov %rbx,   8(%rdi)
+    mov %rcx,  16(%rdi)
+    mov %rdx,  24(%rdi)
+    pop %rax    # ignore return address
+    pop %rax    # rsi
+    mov %rax,  32(%rdi)
+    pop %rax    # rdi
+    mov %rax,  40(%rdi)
+    mov %rbp,  48(%rdi)
+    mov %r8,   64(%rdi)
+    mov %r9,   72(%rdi)
+    mov %r10,  80(%rdi)
+    mov %r11,  88(%rdi)
+    mov %r12,  96(%rdi)
+    mov %r13, 104(%rdi)
+    mov %r14, 112(%rdi)
+    mov %r15, 120(%rdi)
+    mov %ds,  148(%rdi)
+    mov %es,  152(%rdi)
+    mov %fs,  156(%rdi)
+    mov %gs,  160(%rdi)
+    pop %rbx    # return address to breakpoint()
+    mov %rbx,  128(%rdi)     # rip
+    pop %rbx
+    movl %ebx, 140(%rdi)     # cs
+    pop %rbx
+    movl %ebx, 136(%rdi)     # eflags
+    pop %rbx
+    mov %rbx,   56(%rdi)     # rsp
+    pop %rbx
+    movl %ebx, 144(%rdi)     # ss
+    mov %rsi, %rbx           # exception number
+
+    call getGdbStack
+    mov %rax, %rsp
+    mov %rbx, %rdi
+    call handle_exception
+
+# requires reg64Buffer to be at %rdi
+.globl resumeExecution
+.align  8
+resumeExecution:
+    mov   8(%rdi), %rbx
+    mov  16(%rdi), %rcx
+    mov  24(%rdi), %rdx
+    mov  32(%rdi), %rsi
+    mov  48(%rdi), %rbp
+    mov  64(%rdi), %r8
+    mov  72(%rdi), %r9
+    mov  80(%rdi), %r10
+    mov  88(%rdi), %r11
+    mov  96(%rdi), %r12
+    mov 104(%rdi), %r13
+    mov 112(%rdi), %r14
+    mov 120(%rdi), %r15
+    mov 148(%rdi), %ds
+    mov 152(%rdi), %es
+    xor %rax, %rax
+    movl 144(%rdi), %eax    # ss
+    push %rax
+    xor %rax, %rax
+    mov  56(%rdi), %rax     # rsp
+    push %rax
+    xor %rax, %rax
+    movl 136(%rdi), %eax    # eflags
+    push %rax
+    xor %rax, %rax
+    movl 140(%rdi), %eax    # cs
+    push %rax
+    xor %rax, %rax
+    mov 128(%rdi), %rax     # rip
+    push %rax
+
+    mov    (%rdi), %rax     # restore rax here
+    mov  40(%rdi), %rdi     # restore rdi here
+# iretq requires: ss, rsp, eflags, cs, rip
+    iretq
+
+.align 8
+mem_fault:
+    pop %rax                # error code
+    pop %rax                # rip (but we jump to mem_fault_routine)
+    pop %rax                # cs
+    pop %rbx                # eflags
+    pop %rcx                # rsp
+    pop %rdx                # ss
+    push %rdx               # ss
+    push %rcx               # rsp
+    push %rbx               # eflags
+    push %rax               # cs
+    mov $1, %rax
+    mov %rax, gdbFaultHandlerCalled
+    mov mem_fault_return_addr, %rax
+    push %rax               # rip
+    iretq
+
+# get_char/set_char can cause faults due to invalid request from gdb users. 
+# Therefore, it is essential to provide fault handlers to prevent kernel
+# from dying.  Since, faults re-run faulty instruction, the return address
+# must be changed by fault handler to point to next instruction (like
+# traps). This is easier in assembly code.
+# Also, these routines always use frame pointer to work consistently,
+# regardless of the -fno-omit-frame-pointer flag during compilation.
+.globl get_char
+.align 8
+# int get_char(char* addr)
+get_char:
+    push %rbp
+    mov %rsp, %rbp
+    mov %rdi, -0x8(%rbp)      # char* addr
+    mov %rbx, -0x10(%rbp)
+    lea mem_fault_return1, %rbx
+    mov %rbx, mem_fault_return_addr
+    mov -0x8(%rbp), %rax
+    movzbl (%rax), %eax
+mem_fault_return1:
+    mov -0x10(%rbp), %rbx
+    mov -0x8(%rbp), %rdi
+    pop %rbp
+    retq
+
+.globl set_char
+.align 8
+# void set_char(char* addr, int val)
+set_char:
+    push %rbp
+    mov %rsp, %rbp
+    mov %rdi, -0x8(%rbp)      # char* addr
+    mov %rsi, -0x10(%rbp)     # int val
+    mov %rbx, -0x18(%rbp)
+    mov %rdx, -0x20(%rbp)
+    mov %rax, -0x28(%rbp)
+    lea mem_fault_return2, %rbx
+    mov %rbx, mem_fault_return_addr
+    mov -0x10(%rbp), %rax
+    mov %rax,%rdx
+    mov -0x8(%rbp), %rax
+    mov %dl, (%rax)
+mem_fault_return2:
+    mov -0x28(%rbp), %rax
+    mov -0x20(%rbp), %rdx
+    mov -0x18(%rbp), %rbx
+    mov -0x10(%rbp), %rsi
+    mov -0x8(%rbp), %rdi
+    pop %rbp
+    retq
+
+# catchException
+.macro CatchEx ex_num
+.globl catchException\ex_num
+.align  8
+catchException\ex_num:
+    push %rdi           # save rdi, rsi
+    push %rsi
+		push %rax
+		call getGdbCpu
+		mov %rax, %rdi
+		pop %rax
+    mov $\ex_num, %rsi
+    call enterGdb
+.endm
+
+# catchExceptionFault
+.macro CatchExFault ex_num
+.globl catchExceptionFault\ex_num
+.align 8
+catchExceptionFault\ex_num:
+    cmp $0, gdbFaultHandlerEnabled
+    jne mem_fault
+    jmp isr_wrapper_\ex_num
+.endm
+
+CatchEx 0x00
+CatchEx 0x01
+CatchEx 0x02
+CatchEx 0x03
+CatchEx 0x04
+CatchEx 0x05
+CatchEx 0x06
+CatchEx 0x07
+CatchEx 0x08
+CatchEx 0x09
+CatchEx 0x0a
+CatchExFault 0x0b
+CatchExFault 0x0c
+CatchExFault 0x0d
+CatchExFault 0x0e
+CatchEx 0x10
+CatchEx 0xef
+
+.data
+.align 8
+mem_fault_return_addr:
+	.quad 0x0000000000000000

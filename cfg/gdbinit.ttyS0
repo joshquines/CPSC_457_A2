@@ -1,0 +1,8 @@
+set remotebaud 38400
+target remote /dev/ttyS0
+# set breakpoints here
+
+# continue target right away
+cont
+# get thread information
+info threads

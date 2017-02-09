@@ -1,0 +1,7 @@
+.PHONY: kalli
+
+kalli:
+	$(MAKE) clean
+	rsync -e /usr/bin/ssh -lprtuvzog $(SRCDIR)/ $@:$(SRCDIR)/ --delete
+	ssh $@ $(MAKE) -C $(SRCDIR)/.. tftp
+	$(MAKE) all

@@ -1,0 +1,7 @@
+#!/bin/bash
+echo "arp -d 192.168.56.200"
+echo "arp -d 192.168.56.201"
+echo "iptables -D FORWARD -i vboxnet0 -j ACCEPT"
+echo "iptables -D INPUT -i vboxnet0 -j ACCEPT"
+echo "ifconfig vboxnet0 down"
+exit 0

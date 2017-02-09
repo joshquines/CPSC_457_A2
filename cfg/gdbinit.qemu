@@ -1,0 +1,10 @@
+target remote localhost:1234
+# set breakpoints here
+
+# continue target right away
+cont
+# get thread information
+set pagination off
+info threads
+
+# add startup instructions here

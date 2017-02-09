@@ -1,0 +1,6 @@
+#!/bin/bash
+echo "arp -s 192.168.56.200 0800272BA956"
+echo "arp -s 192.168.56.201 0800272BA957"
+echo "iptables -I FORWARD -i vboxnet0 -j ACCEPT"
+echo "iptables -I INPUT -i vboxnet0 -j ACCEPT"
+exit 0
