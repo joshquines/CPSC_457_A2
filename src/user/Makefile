@@ -11,7 +11,9 @@ SRC=$(wildcard *.cc)
 OBJ=$(SRC:%.cc=%.o)
 EXE=$(SRC:%.cc=exec/%)
 
+
 all: $(EXE) exec/motb
+all: $(EXE) exec/schedparam
 
 .PHONY: .FORCE
 
@@ -38,12 +40,9 @@ exec/motb: .FORCE
 exec/schedparam: .FORCE
 	@echo creating $@
 	@mkdir -p exec
-	@echo > $@
-	@echo "MAKING SCHEDPARAM" >> $@
-	@echo >> $@
-	@echo -n "ASDFSADFSADF: " >> $@
-	@date >> $@
-	@echo >> $@
+	@echo "mingranularity 4" >> $@
+	@echo -n "epochlen 20" >> $@
+
 
 echo:
 	@echo SRC: $(SRC)

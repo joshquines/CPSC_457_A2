@@ -25,6 +25,7 @@ class UnblockInfo;
 
 class Thread : public EmbeddedList<Thread>::Link {
   friend class Scheduler;   // Scheduler accesses many internals
+  friend class ThreadNode;
   friend void Runtime::postResume(bool, Thread&, AddressSpace&);
 
   vaddr stackPointer;       // holds stack pointer while thread inactive

@@ -19,6 +19,17 @@
 #include "runtime/Stack.h"
 #include "runtime/Thread.h"
 #include "kernel/Output.h"
+#include "kernel/Tree.h"
+
+
+// Assignment 2 Variables
+unsigned int Scheduler::schedMinGranularity;
+unsigned int Scheduler::defaultEpochLength;
+// ----
+
+  Tree<ThreadNode> *readyTree;
+
+
 
 Scheduler::Scheduler() : readyCount(0), preemption(0), resumption(0), partner(this) {
   Thread* idleThread = Thread::create((vaddr)idleStack, minimumStack);
@@ -26,8 +37,23 @@ Scheduler::Scheduler() : readyCount(0), preemption(0), resumption(0), partner(th
   // use low-level routines, since runtime context might not exist
   idleThread->stackPointer = stackInit(idleThread->stackPointer, &Runtime::getDefaultMemoryContext(), (ptr_t)Runtime::idleLoop, this, nullptr, nullptr);
   readyQueue[idlePriority].push_back(*idleThread);
+
+  
+  // ASSIGNMENT 2 STUFF
+
+  //
+  readyTree = new Tree<ThreadNode>();
+  readyTree->insert(*(new ThreadNode(idleThread)));
   readyCount += 1;
 }
+
+// Assignment 2 get/set for Variables
+void Scheduler::setMinGran(unsigned int parsedNum)   {schedMinGranularity = parsedNum;}
+void Scheduler::setDefaultEpoch(unsigned int parsedNum)    {defaultEpochLength = parsedNum;}
+
+unsigned int Scheduler::getMinGran()   {return schedMinGranularity;}
+unsigned int Scheduler::getDefaultEpoch()    {return defaultEpochLength;}
+// ----
 
 static inline void unlock() {}
 

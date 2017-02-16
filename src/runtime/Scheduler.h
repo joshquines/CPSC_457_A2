@@ -17,8 +17,10 @@
 #ifndef _Scheduler_h_
 #define _Scheduler_h_ 1
 
+
 #include "generic/EmbeddedContainers.h"
 #include "runtime/Runtime.h"
+
 
 class Thread;
 
@@ -33,6 +35,10 @@ class Scheduler {
   volatile mword preemption;
   volatile mword resumption;
 
+  static unsigned int schedMinGranularity;
+  static unsigned int defaultEpochLength; 
+   
+
   Scheduler* partner;
 
   template<typename... Args>
@@ -42,6 +48,7 @@ class Scheduler {
 
   Scheduler(const Scheduler&) = delete;                  // no copy
   const Scheduler& operator=(const Scheduler&) = delete; // no assignment
+  
 
 public:
   Scheduler();
@@ -51,6 +58,17 @@ public:
   void suspend(BasicLock& lk);
   void suspend(BasicLock& lk1, BasicLock& lk2);
   void terminate() __noreturn;
+  // Assignment 2
+ 
+
+  
+  // Assignment 2
+  static void setMinGran(unsigned int parsedNum);
+  static void setDefaultEpoch(unsigned int parsedNum);
+
+  static unsigned int getMinGran();
+  static unsigned int getDefaultEpoch();
+  // --
 };
 
 #endif /* _Scheduler_h_ */

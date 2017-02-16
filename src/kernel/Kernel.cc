@@ -54,36 +54,54 @@ void kosMain() {
     }
     KOUT::outl();
   }
-  
-  //FOR ASSIGNMENT 2
 
-  bool flag = false;
+//FOR ASSIGNMENT 2
+
+  bool flag = false;          // flag for when to parse the number
+  bool numNext = false;       // flag for when to parse epochLength
+  bool read = false;          // flag for second digit of epochLength
+
   auto iter2 = kernelFS.find("schedparam");
   if (iter2 == kernelFS.end()) 
   {
-	KOUT::outl("schedparam information not found");
+  KOUT::outl("schedparam information not found");
     } else {
         FileAccess f(iter2->second);
-        for (;;) 
-        {
+        for (;;) {
             char c;
             if (f.read(&c, 1) == 0) break;
 
-            if(!isspace(c))
-            {
-                if(flag == false)
-                {
-                    minGranularity = c;
-                    flag = true;
-                }else{
-                    epochLength += c;
-                }
+            KOUT::out1(c);
+
+            if(read){
+              unsigned int parsed = c;
+              Scheduler::setDefaultEpoch((Scheduler::getDefaultEpoch()*10)+parsed);          // multiply last read epochLength by 10 and add second digit
             }
+
+            if(flag){
+              if(!numNext){
+                unsigned int parsed = c;
+                Scheduler::setMinGran(parsed);
+                numNext = true;
+                flag = false;
+              } else{
+                unsigned int parsed = c;
+                Scheduler::setDefaultEpoch(parsed);
+                read = true;
+              }
+            }
+
+            if(c = ' '){           // if c is space then parse next characters
+              flag = true;
+            }
+
         }
+
 
         KOUT::outl();
     }
-  
+// ----
+
 #if TESTING_TIMER_TEST
   StdErr.print(" timer test, 3 secs...");
   for (int i = 0; i < 3; i++) {

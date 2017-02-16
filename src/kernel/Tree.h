@@ -7,7 +7,7 @@
 
 
 // This code is by a student who was enrolled in CPSC 457 in Fall 2015
-
+#include <assert.h>
 template <class T>
 class Tree {
 public:
@@ -20,8 +20,8 @@ public:
     node *root;
     
     bool empty() const {
-		return root==NULL;
-	}
+        return root==NULL;
+    }
     
     T* readMinNode() const {
         node *cur = root;
@@ -54,9 +54,9 @@ public:
         }
         node *n = new node(item, prev);
         *cur = n, fix(n);
-		return;
-	}
-	
+        return;
+    }
+    
     void deleteNode(const T &item) {erase(find(item));}
     void erase(node *n) {
         if (!n) return;
@@ -72,21 +72,23 @@ public:
             return;
         } else parent_leg(n) = NULL;
         fix(n->p), n->p = n->l = n->r = NULL;
-	}
-	
+    }
+    
     node* successor(node *n) const {
         if (!n) return NULL;
         if (n->r) return nth(0, n->r);
         node *p = n->p;
         while (p && p->r == n) n = p, p = p->p;
         return p;
-	}
+    }
     
     node* nth(int n, node *cur = NULL) const {
         if (!cur) cur = root;
         while (cur) {
             if (n < sz(cur->l)) cur = cur->l;
-            else if (n > sz(cur->l)) n -= sz(cur->l)  1, cur = cur->r;
+            else if (n > sz(cur->l)){
+             n -= sz(cur->l) + 1; cur = cur->r;
+            }  
             else break;
         } return cur; }
 
@@ -98,8 +100,8 @@ private:
     inline bool right_heavy(node *n) const {
         return n && height(n->r) > height(n->l); }
     inline bool too_heavy(node *n) const {
-		int hl = height(n->l);
-		int hr = height(n->r);
+        int hl = height(n->l);
+        int hr = height(n->r);
         int m = hl>hr ? hl-hr : hr-hl;
         return n && m > 1;
     }
@@ -108,16 +110,17 @@ private:
         if (!n->p) return root;
         if (n->p->l == n) return n->p->l;
         if (n->p->r == n) return n->p->r;
-    }
+        assert(false);
+        }
     
     void augment(node *n) {
         if (!n) return;
-        n->size = 1  sz(n->l) + sz(n->r);
+        n->size = 1 +  sz(n->l) + sz(n->r);
         int hl = height(n->l);
         int hr = height(n->r);
         int m = hl>hr ? hl : hr;
         n->height = 1 + m;
-	}
+    }
     #define rotate(l, r) \
         node *l = n->l; \
         l->p = n->p; \
@@ -141,33 +144,25 @@ private:
 };
 
 
+#include "runtime/Thread.h"
 // Class for tree node
 class ThreadNode{
-	friend class Scheduler;
-	Thread *th;
-	
-	public:
-		bool operator < (ThreadNode other) const {
-			return th->priority < other.th->priority;
-		}
-		bool operator == (ThreadNode other) const {
-			return th->priority == other.th->priority;
-		}
-		bool operator > (ThreadNode other) const {
-			return th->priority > other.th->priority;
-		}
+    friend class Scheduler;
+    Thread *th;
     
-	//this is how we want to do it
-	ThreadNode(Thread *t){
-		th = t;
-	}
+    public:
+        bool operator < (ThreadNode other) const {
+            return th->priority < other.th->priority;
+        }
+        bool operator == (ThreadNode other) const {
+            return th->priority == other.th->priority;
+        }
+        bool operator > (ThreadNode other) const {
+            return th->priority > other.th->priority;
+        }
+    
+    //this is how we want to do it
+    ThreadNode(Thread *t){
+        th = t;
+    }
 };
-
-//Declare a tree
-Tree<ThreadNode> *readyTree;
-
-//Initialize the tree that contains the threads waiting to be served
-readyTree = new Tree<ThreadNode>();
-
-//Add a thread to the tree. anyThreadClassObject is an object of ThreadClass
-readyTree->insert(*(new ThreadNode(*anyThreadClassObject)));
