@@ -1,5 +1,5 @@
 /******************************************************************************
-    Copyright © 2012-2015 Martin Karsten
+    Copyright ï¿½ 2012-2015 Martin Karsten
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -55,52 +55,54 @@ void kosMain() {
     KOUT::outl();
   }
 
-//FOR ASSIGNMENT 2
+  //FOR ASSIGNMENT 2
+  // know values should be 4 and 20
+  bool flag = false;
+  unsigned int fullEpLen = 0;
+  unsigned int paramNum = 1;
+  auto myiter = kernelFS.find("schedparam");
+  if (myiter == kernelFS.end()){
+    KOUT::outl("cannot find schedparam file");
+  } else {
+    FileAccess f(myiter -> second);
+    for (;;) {
+      char c;
 
-  bool flag = false;          // flag for when to parse the number
-  bool numNext = false;       // flag for when to parse epochLength
-  bool read = false;          // flag for second digit of epochLength
+      if (f.read(&c, 1) == 0) break;
+      KOUT::out1(c);
+      // if char after space
+      if (flag){
+         // convert ascii char to int
+         unsigned int charVal = c - 48;
+         // 1 = minGranularity
+         // 2 = first digit of epochLength
+         // 3 = second digit of epochLength
+         if (paramNum == 1){
+           Scheduler::setMinGran(charVal);
+           paramNum++;
+           flag = false;
+         } else if (paramNum == 2){
+           //save first digit
+           fullEpLen = charVal;
+           paramNum++;
+         } else {
+           fullEpLen *= 10;
+           fullEpLen += charVal;
+           Scheduler::setDefaultEpoch(fullEpLen);
+           flag = false;
+         }
+       }
 
-  auto iter2 = kernelFS.find("schedparam");
-  if (iter2 == kernelFS.end()) 
-  {
-  KOUT::outl("schedparam information not found");
-    } else {
-        FileAccess f(iter2->second);
-        for (;;) {
-            char c;
-            if (f.read(&c, 1) == 0) break;
-
-            KOUT::out1(c);
-
-            if(read){
-              unsigned int parsed = c;
-              Scheduler::setDefaultEpoch((Scheduler::getDefaultEpoch()*10)+parsed);          // multiply last read epochLength by 10 and add second digit
-            }
-
-            if(flag){
-              if(!numNext){
-                unsigned int parsed = c;
-                Scheduler::setMinGran(parsed);
-                numNext = true;
-                flag = false;
-              } else{
-                unsigned int parsed = c;
-                Scheduler::setDefaultEpoch(parsed);
-                read = true;
-              }
-            }
-
-            if(c = ' '){           // if c is space then parse next characters
-              flag = true;
-            }
-
-        }
-
-
-        KOUT::outl();
-    }
-// ----
+       if (c == ' '){
+         flag = true;
+       }
+     }
+    //KOUT::outl();
+    //KOUT::outl(Scheduler::getMinGran());
+    //KOUT::outl(Scheduler::getDefaultEpoch());
+    KOUT:: outl();
+  }
+  //----
 
 #if TESTING_TIMER_TEST
   StdErr.print(" timer test, 3 secs...");

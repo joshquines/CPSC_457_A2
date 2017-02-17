@@ -1,5 +1,5 @@
 /******************************************************************************
-    Copyright © 2012-2015 Martin Karsten
+    Copyright ï¿½ 2012-2015 Martin Karsten
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,14 +30,13 @@ class Scheduler {
 
   // very simple N-class prio scheduling
   BasicLock readyLock;
-  volatile mword readyCount; 
+  volatile mword readyCount;
   EmbeddedList<Thread> readyQueue[maxPriority];
   volatile mword preemption;
   volatile mword resumption;
 
-  static unsigned int schedMinGranularity;
-  static unsigned int defaultEpochLength; 
-   
+
+
 
   Scheduler* partner;
 
@@ -48,7 +47,7 @@ class Scheduler {
 
   Scheduler(const Scheduler&) = delete;                  // no copy
   const Scheduler& operator=(const Scheduler&) = delete; // no assignment
-  
+
 
 public:
   Scheduler();
@@ -59,10 +58,12 @@ public:
   void suspend(BasicLock& lk1, BasicLock& lk2);
   void terminate() __noreturn;
   // Assignment 2
- 
 
-  
+
+
   // Assignment 2
+  static unsigned int schedMinGranularity;
+  static unsigned int defaultEpochLength; 
   static void setMinGran(unsigned int parsedNum);
   static void setDefaultEpoch(unsigned int parsedNum);
 
