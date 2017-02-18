@@ -36,6 +36,12 @@ class Thread : public EmbeddedList<Thread>::Link {
   bool affinity;            // stick with scheduler
   Scheduler* nextScheduler; // resume on same core (for now)
 
+// FOR ASSIGNMENT 2
+  mword vRuntime;           // Virtual Runtime
+  bool checkThread;         // true if the thread has never been scheduled
+//-----
+
+
   Runtime::MachContext ctx;
   Runtime::ThreadStats stats;
 
@@ -48,7 +54,7 @@ protected:
 
   Thread(vaddr sb, size_t ss) :
     stackPointer(vaddr(this)), stackBottom(sb), stackSize(ss),
-    priority(defPriority), affinity(false), nextScheduler(nullptr),
+    priority(defPriority), affinity(false), nextScheduler(nullptr), vRuntime(0), checkThread(true),
     state(Running), unblockInfo(nullptr) {}
 
   // called directly when creating idle thread(s)

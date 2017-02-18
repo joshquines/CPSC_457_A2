@@ -7,20 +7,20 @@
 
 
 // This code is by a student who was enrolled in CPSC 457 in Fall 2015
-#include <assert.h>
+//#include <assert.h>
 template <class T>
 class Tree {
 public:
     struct node {
         T item; node *p, *l, *r;
         int size, height;
-        node(const T &_item, node *_p = NULL) : item(_item), p(_p),
-        l(NULL), r(NULL), size(1), height(0) { } };
-    Tree() : root(NULL) { }
+        node(const T &_item, node *_p = nullptr) : item(_item), p(_p),
+        l(nullptr), r(nullptr), size(1), height(0) { } };
+    Tree() : root(nullptr) { }
     node *root;
     
     bool empty() const {
-        return root==NULL;
+        return root==nullptr;
     }
     
     T* readMinNode() const {
@@ -46,7 +46,7 @@ public:
         return cur; }
         
     void insert(const T &item) {
-        node *prev = NULL, **cur = &root;
+        node *prev = nullptr, **cur = &root;
         while (*cur) {
             prev = *cur;
             if ((*cur)->item < item) cur = &((*cur)->r);
@@ -70,19 +70,19 @@ public:
             if (n->r) n->r->p = s;
             parent_leg(n) = s, fix(s);
             return;
-        } else parent_leg(n) = NULL;
-        fix(n->p), n->p = n->l = n->r = NULL;
+        } else parent_leg(n) = nullptr;
+        fix(n->p), n->p = n->l = n->r = nullptr;
     }
     
     node* successor(node *n) const {
-        if (!n) return NULL;
+        if (!n) return nullptr;
         if (n->r) return nth(0, n->r);
         node *p = n->p;
         while (p && p->r == n) n = p, p = p->p;
         return p;
     }
     
-    node* nth(int n, node *cur = NULL) const {
+    node* nth(int n, node *cur = nullptr) const {
         if (!cur) cur = root;
         while (cur) {
             if (n < sz(cur->l)) cur = cur->l;
@@ -110,7 +110,7 @@ private:
         if (!n->p) return root;
         if (n->p->l == n) return n->p->l;
         if (n->p->r == n) return n->p->r;
-        assert(false);
+        //assert(false);
         }
     
     void augment(node *n) {

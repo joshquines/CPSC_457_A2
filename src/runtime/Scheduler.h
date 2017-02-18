@@ -16,7 +16,7 @@
 ******************************************************************************/
 #ifndef _Scheduler_h_
 #define _Scheduler_h_ 1
-
+#include "kernel/Tree.h"
 
 #include "generic/EmbeddedContainers.h"
 #include "runtime/Runtime.h"
@@ -31,11 +31,18 @@ class Scheduler {
   // very simple N-class prio scheduling
   BasicLock readyLock;
   volatile mword readyCount;
+
+  Tree<ThreadNode> *readyTree;
+  static unsigned int schedMinGranularity;
+  static unsigned int defaultEpochLength;
+  //unsigned int minGranularity;
+  unsigned int epochLengthTicks;
+  mword minvRuntime;
+
+
   EmbeddedList<Thread> readyQueue[maxPriority];
   volatile mword preemption;
   volatile mword resumption;
-
-
 
 
   Scheduler* partner;
@@ -62,13 +69,12 @@ public:
 
 
   // Assignment 2
-  static unsigned int schedMinGranularity;
-  static unsigned int defaultEpochLength; 
   static void setMinGran(unsigned int parsedNum);
   static void setDefaultEpoch(unsigned int parsedNum);
 
   static unsigned int getMinGran();
   static unsigned int getDefaultEpoch();
+  void adjustEpochTicks();
   // --
 };
 
