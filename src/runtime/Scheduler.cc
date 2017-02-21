@@ -86,6 +86,7 @@ inline void Scheduler::switchThread(Scheduler* target, Args&... a) {
     nextThread = readyTree->popMinNode()->th;
     
     // suspend thread if need be
+    // Whenever a task is suspended for I/O, after removing it from readyTree, the vRuntime is updated
     if (sizeof...(Args)!= 0){
       nextThread->vRuntime -= minvRuntime;
     }
@@ -180,10 +181,23 @@ void Scheduler::enqueue(Thread& t) {
   if (wake) Runtime::wakeUp(this);
 }
 
+
 void Scheduler::resume(Thread& t) {
   GENASSERT1(&t != Runtime::getCurrThread(), Runtime::getCurrThread());
-  if (t.nextScheduler) t.nextScheduler->enqueue(t);
-  else Runtime::getScheduler()->enqueue(t);
+  if (t.nextScheduler){
+    // ASSIGNMENT 2 
+    //** Minor bug: had to compile this a few times for it to run without infinite pinging
+    //** Infinite pinging happens approx 1/3 times 
+    // Whenever a task is unblocked after I/O, before inserting it into readyTree, the vRuntime is updated
+    t.vRuntime += t.nextScheduler->minvRuntime;
+    t.nextScheduler->enqueue(t);
+  }else {
+    // Whenever a new task is created, its vRuntime is set as
+    // vRuntime = minvRuntime
+    t.vRuntime += Runtime::getScheduler()->minvRuntime;
+    Runtime::getScheduler()->enqueue(t);
+  }
+    //-----
 }
 
 void Scheduler::preempt() {               // IRQs disabled, lock count inflated
