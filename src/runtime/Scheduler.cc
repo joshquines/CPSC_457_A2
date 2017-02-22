@@ -24,10 +24,10 @@
 // Assignment 2 Variables
 unsigned int Scheduler::schedMinGranularity;
 unsigned int Scheduler::defaultEpochLength;
-// ----
 
-  Tree<ThreadNode> *readyTree;
+Tree<ThreadNode> *readyTree;
 
+//-----
 
 
 Scheduler::Scheduler() : readyCount(0), preemption(0), resumption(0), partner(this) {
